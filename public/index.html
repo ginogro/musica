@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>Mi Música</title>
+  <meta name="description" content="Tu servidor de música personal" />
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="apple-mobile-web-app-capable" content="yes" />
+  <link rel="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-mobile-web-app-title" content="MiMúsica" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ================= CABECERA ================= -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">♪</span>
+        <div>
+          <h1>Mi Música</h1>
+          <p id="connStatus" class="conn">conectando…</p>
+        </div>
+      </div>
+      <button id="btnInstall" class="btn-install hidden">Instalar</button>
+    </header>
+
+    <!-- ================= CONTENIDO ================= -->
+    <main id="main">
+      <!-- ---------- BIBLIOTECA ---------- -->
+      <section id="view-library" class="view active">
+        <div class="chips" id="libChips">
+          <button class="chip active" data-lib="all">Todo</button>
+          <button class="chip" data-lib="recent">Recientes</button>
+          <button class="chip" data-lib="artists">Artistas</button>
+          <button class="chip" data-lib="genres">Géneros</button>
+          <button class="chip" data-lib="albums">Álbumes</button>
+        </div>
+
+        <div class="searchbar">
+          <input id="libSearch" type="search" placeholder="Buscar en tu biblioteca…" autocomplete="off" />
+        </div>
+
+        <div id="libSummary" class="summary"></div>
+        <div id="libList" class="list"></div>
+        <div id="libArtists" class="grid hidden"></div>
+      </section>
+
+      <!-- ---------- PEDIR MÚSICA ---------- -->
+      <section id="view-discover" class="view">
+        <div class="disco-intro">
+          <h2>Pedir canciones</h2>
+          <p>Escribe un autor, un estilo o una canción. El servidor la busca en
+             <strong>fuentes gratuitas</strong> y, si no la encuentra, en
+             <strong>YouTube</strong> (puedes elegir la fuente aquí abajo);
+             la descarga a la Mac y la añade a tu biblioteca.</p>
+        </div>
+
+        <div class="searchbar big">
+          <input id="discoSearch" type="search" placeholder="p. ej. Spinetta, jazz instrumental, blues…"
+                 autocomplete="off" enterkeyhint="search" />
+          <button id="btnDiscoSearch" class="btn-primary">Buscar</button>
+        </div>
+
+        <div class="srcrow">
+          <span class="srclabel">Buscar en</span>
+          <div class="chips" id="discoSources">
+            <button class="chip active" data-src="all">Todas</button>
+            <button class="chip" data-src="free">Sitios libres</button>
+            <button class="chip" data-src="youtube">YouTube</button>
+          </div>
+        </div>
+        <div id="discoSrcNote" class="srcnote hidden"></div>
+
+        <div class="chips" id="discoChips">
+          <button class="chip" data-q="jazz">jazz</button>
+          <button class="chip" data-q="blues">blues</button>
+          <button class="chip" data-q="rock psicodélico">rock psicodélico</button>
+          <button class="chip" data-q="música para estudiar">para estudiar</button>
+          <button class="chip" data-q="instrumental guitarra">guitarra</button>
+        </div>
+
+        <div id="discoMeta" class="summary"></div>
+        <div id="discoList" class="list"></div>
+      </section>
+
+      <!-- ---------- SIMILARES ---------- -->
+      <section id="view-similar" class="view">
+        <div class="disco-intro">
+          <h2>Parecidas a las tuyas</h2>
+          <p>Elige una canción de tu biblioteca y te propongo más del mismo
+             autor o del mismo estilo. Modo actual:
+             <strong id="similarModeLabel">estilo</strong>.</p>
+        </div>
+
+        <div class="searchbar">
+          <select id="seedSelect"></select>
+        </div>
+
+        <div class="row-actions">
+          <button class="btn-ghost active" data-mode="style">Mismo estilo</button>
+          <button class="btn-ghost" data-mode="artist">Mismo autor</button>
+          <button id="btnSimilar" class="btn-primary">Buscar</button>
+        </div>
+
+        <div id="similarMeta" class="summary"></div>
+        <div id="similarList" class="list"></div>
+      </section>
+
+      <!-- ---------- COLA ---------- -->
+      <section id="view-queue" class="view">
+        <div class="disco-intro">
+          <h2>Descargas</h2>
+          <p>Trabajos en curso en el servidor.</p>
+        </div>
+        <div class="row-actions">
+          <button id="btnQueueRefresh" class="btn-ghost">Actualizar</button>
+          <button id="btnQueueClear" class="btn-ghost">Limpiar terminadas</button>
+          <button id="btnRescan" class="btn-primary">Escanear biblioteca</button>
+        </div>
+        <div id="scanStatus" class="summary"></div>
+        <div id="queueList" class="list"></div>
+      </section>
+
+      <!-- ---------- AJUSTES ---------- -->
+      <section id="view-settings" class="view">
+        <div class="disco-intro">
+          <h2>Estado del servidor</h2>
+        </div>
+        <div id="statsBox" class="stats"></div>
+        <div class="row-actions">
+          <button id="btnInstall2" class="btn-primary">Instalar en el móvil</button>
+          <button id="btnRescan2" class="btn-ghost">Reescanear y autoclasificar</button>
+        </div>
+        <div id="unclassifiedBox" class="summary"></div>
+        <div id="aboutBox" class="about"></div>
+      </section>
+    </main>
+
+    <!-- ================= REPRODUCTOR ================= -->
+    <div id="player" class="player hidden">
+      <div class="seekwrap">
+        <span id="tCur" class="t">0:00</span>
+        <input id="seek" type="range" min="0" max="1000" value="0" />
+        <span id="tDur" class="t">0:00</span>
+      </div>
+      <div class="player-main">
+        <div class="pinfo">
+          <div id="pTitle" class="ptitle">—</div>
+          <div id="pArtist" class="partist">—</div>
+        </div>
+        <div class="pcontrols">
+          <button id="btnShuffle" class="ctl" title="Aleatorio">⤨</button>
+          <button id="btnPrev" class="ctl" title="Anterior">⏮</button>
+          <button id="btnPlay" class="ctl big" title="Reproducir">▶</button>
+          <button id="btnNext" class="ctl" title="Siguiente">⏭</button>
+          <button id="btnRepeat" class="ctl" title="Repetir">↻</button>
+        </div>
+        <div class="paux">
+          <button id="btnExpand" class="ctl" title="Ampliar">⌃</button>
+        </div>
+      </div>
+      <div class="volwrap">
+        🔊 <input id="vol" type="range" min="0" max="100" value="85" />
+      </div>
+    </div>
+
+    <!-- ================= AHORA SUENA (a pantalla completa) ================= -->
+    <div id="now" class="now hidden">
+      <button id="btnCollapse" class="now-close">⌄</button>
+      <div id="nowArt" class="now-art">♪</div>
+      <div id="nowTitle" class="now-title">—</div>
+      <div id="nowArtist" class="now-artist">—</div>
+      <div class="seekwrap">
+        <span id="tCur2" class="t">0:00</span>
+        <input id="seek2" type="range" min="0" max="1000" value="0" />
+        <span id="tDur2" class="t">0:00</span>
+      </div>
+      <div class="pcontrols">
+        <button id="btnShuffle2" class="ctl">⤨</button>
+        <button id="btnPrev2" class="ctl">⏮</button>
+        <button id="btnPlay2" class="ctl big">▶</button>
+        <button id="btnNext2" class="ctl">⏭</button>
+        <button id="btnRepeat2" class="ctl">↻</button>
+      </div>
+      <div class="volwrap">
+        🔊 <input id="vol2" type="range" min="0" max="100" value="85" />
+      </div>
+      <div class="now-actions">
+        <button id="btnDownloadCur" class="btn-ghost">Guardar en el móvil</button>
+      </div>
+    </div>
+
+    <!-- ================= NAV ================= -->
+    <nav class="tabbar">
+      <button class="tab active" data-view="library"><span>♫</span>Biblioteca</button>
+      <button class="tab" data-view="discover"><span>＋</span>Pedir</button>
+      <button class="tab" data-view="similar"><span>≈</span>Similares</button>
+      <button class="tab" data-view="queue"><span>↓</span>Cola</button>
+      <button class="tab" data-view="settings"><span>⚙</span>Ajustes</button>
+    </nav>
+
+    <div id="toast" class="toast hidden"></div>
+    <audio id="audio" preload="metadata"></audio>
+  </div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
